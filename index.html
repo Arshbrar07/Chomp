@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$CHOMP — The Supply Eater</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#121212;
+    --bg2:#191919;
+    --card:#1d1d1a;
+    --bone:#f2efe6;
+    --lime:#d4ff4f;
+    --ember:#ff5a1f;
+    --muted:#8a8a80;
+    --line:#33322c;
+    --font-display:'Bungee', system-ui, sans-serif;
+    --font-body:'Space Grotesk', system-ui, sans-serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--bone);
+    font-family:var(--font-body);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--lime);color:#121212;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+
+  .noise{
+    position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.03;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- shared icon buttons ---------- */
+  .icon-btn{
+    width:38px;height:38px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);background:transparent;color:var(--bone);
+    cursor:pointer;transition:border-color .2s, color .2s, transform .15s;
+    flex-shrink:0;
+  }
+  .icon-btn svg{width:17px;height:17px;}
+  .icon-btn:hover{border-color:var(--lime);color:var(--lime);transform:translateY(-2px);}
+
+  .action-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:center;}
+  .pill{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:var(--font-mono);font-weight:800;font-size:.82rem;letter-spacing:.02em;
+    padding:14px 24px;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--bone);
+    border-radius:999px;transition:transform .15s ease, border-color .2s, background .2s, color .2s;
+    text-decoration:none;
+  }
+  .pill svg{width:16px;height:16px;flex-shrink:0;}
+  .pill:hover{transform:translateY(-2px);}
+  .pill.solid{background:var(--lime);color:#121212;border-color:var(--lime);}
+  .pill.solid:hover{background:#e2ffa0;}
+  .pill.ghost:hover{border-color:var(--lime);color:var(--lime);}
+
+  .ca-row{
+    margin-top:18px;display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--font-mono);font-size:.8rem;color:var(--muted);
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:9px 8px 9px 18px;
+  }
+  .ca-row .ca-val{color:var(--bone);}
+  .ca-row button{
+    display:flex;align-items:center;gap:6px;
+    background:var(--bg2);border:1px solid var(--line);color:var(--bone);
+    font-family:var(--font-mono);font-size:.72rem;font-weight:700;
+    padding:7px 13px;border-radius:999px;cursor:pointer;
+    transition:border-color .2s, color .2s;
+  }
+  .ca-row button svg{width:13px;height:13px;}
+  .ca-row button:hover{border-color:var(--lime);color:var(--lime);}
+  .ca-row button.copied{border-color:var(--lime);color:var(--lime);}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:16px 6vw;
+    background:rgba(18,18,18,.75);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:1.05rem;letter-spacing:.5px;flex-shrink:0;}
+  .brand svg{width:32px;height:32px;}
+  .navlinks{display:flex;gap:26px;font-size:.86rem;color:var(--muted);font-weight:500;}
+  .navlinks a{text-decoration:none;transition:color .2s;}
+  .navlinks a:hover{color:var(--lime);}
+  .nav-right{display:flex;align-items:center;gap:10px;}
+  .nav-buy{
+    font-family:var(--font-mono);font-weight:800;font-size:.78rem;
+    background:var(--lime);color:#121212;padding:11px 18px;border-radius:999px;
+    border:none;cursor:pointer;white-space:nowrap;
+  }
+  @media (max-width:900px){.navlinks{display:none;}}
+
+  /* ---------- marquee ---------- */
+  .marquee{
+    background:var(--lime);color:#121212;
+    overflow:hidden;white-space:nowrap;border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .marquee-track{
+    display:inline-flex;gap:2.5rem;padding:11px 0;
+    animation:scrollLeft 22s linear infinite;
+    font-family:var(--font-mono);font-weight:800;font-size:.82rem;letter-spacing:.04em;
+  }
+  .marquee-track span{display:inline-flex;align-items:center;gap:2.5rem;}
+  .marquee-track b{opacity:.55;}
+  @keyframes scrollLeft{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  @media (prefers-reduced-motion: reduce){.marquee-track{animation:none;}}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    min-height:88vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:8vh 6vw 6vh;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 14%, rgba(212,255,79,.10), transparent 70%),
+      var(--bg);
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:var(--font-mono);font-size:.76rem;letter-spacing:.18em;
+    color:var(--lime);text-transform:uppercase;margin-bottom:20px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before,.eyebrow::after{content:'';width:22px;height:1px;background:var(--lime);opacity:.5;}
+
+  .mascot-wrap{position:relative;width:210px;height:210px;margin-bottom:28px;}
+  .mascot-glow{
+    position:absolute;inset:-40px;border-radius:50%;
+    background:radial-gradient(circle, rgba(212,255,79,.22), transparent 70%);
+    filter:blur(8px);
+    animation:pulse 3.2s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:.7;}50%{transform:scale(1.12);opacity:1;}}
+  .mascot{position:relative;width:100%;height:100%;animation:float 4.5s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0) rotate(-1deg);}50%{transform:translateY(-10px) rotate(1deg);}}
+  .mascot .mouth{transform-origin:100px 148px;animation:chomp 1.6s ease-in-out infinite;}
+  @keyframes chomp{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.55);}}
+
+  h1{
+    font-family:var(--font-display);
+    font-size:clamp(2.2rem,6vw,4.3rem);
+    line-height:1.05;
+    text-transform:uppercase;
+    max-width:15ch;
+  }
+  h1 .hl{color:var(--lime);}
+  .sub{
+    margin-top:20px;max-width:44ch;color:var(--muted);
+    font-size:1.05rem;line-height:1.6;
+  }
+
+  .hero-actions{margin-top:34px;}
+
+  /* ---------- bite divider ---------- */
+  .bite-divider{
+    width:100%;height:24px;
+    background:var(--bg2);
+    clip-path:polygon(
+      0% 0%,100% 0%,100% 100%,
+      95% 40%,90% 100%,85% 40%,80% 100%,75% 40%,70% 100%,65% 40%,60% 100%,
+      55% 40%,50% 100%,45% 40%,40% 100%,35% 40%,30% 100%,25% 40%,20% 100%,
+      15% 40%,10% 100%,5% 40%,0% 100%
+    );
+  }
+
+  section{padding:8.5vh 6vw;background:var(--bg2);}
+  .section-head{max-width:620px;margin:0 auto 56px;text-align:center;}
+  .kicker{font-family:var(--font-mono);color:var(--lime);font-size:.76rem;letter-spacing:.15em;text-transform:uppercase;}
+  h2{font-family:var(--font-display);font-size:clamp(1.5rem,3.6vw,2.3rem);text-transform:uppercase;margin-top:12px;line-height:1.15;}
+  .section-head p{color:var(--muted);margin-top:14px;line-height:1.6;font-size:.96rem;}
+
+  /* ---------- cycle loop ---------- */
+  .loop{
+    max-width:960px;margin:0 auto;position:relative;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  }
+  .loop-card{
+    position:relative;background:var(--card);border:1px solid var(--line);
+    padding:30px 20px 24px;text-align:center;
+  }
+  .loop-card:not(:last-child){border-right:none;}
+  .loop-num{font-family:var(--font-mono);color:var(--ember);font-size:.72rem;letter-spacing:.1em;}
+  .loop-title{font-family:var(--font-display);font-size:1rem;text-transform:uppercase;margin:13px 0 9px;}
+  .loop-card p{color:var(--muted);font-size:.85rem;line-height:1.55;}
+  .loop-arrow{
+    position:absolute;top:50%;right:-13px;transform:translateY(-50%);
+    width:26px;height:26px;background:var(--bg2);border:1px solid var(--line);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:.8rem;color:var(--lime);z-index:2;
+  }
+  .loop-card:last-child .loop-arrow{right:auto;left:50%;top:auto;bottom:-13px;transform:translate(-50%,0) rotate(90deg);}
+  @media (max-width:820px){
+    .loop{grid-template-columns:1fr;}
+    .loop-card{border-right:1px solid var(--line) !important;border-bottom:none;}
+    .loop-card:last-child{border-bottom:1px solid var(--line);}
+    .loop-arrow{right:50%;top:auto;bottom:-13px;transform:translate(50%,0) rotate(90deg);}
+  }
+
+  /* ---------- supply eater ---------- */
+  .eater{background:var(--bg);}
+  .supply-row{
+    max-width:900px;margin:0 auto;
+    display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+    gap:6px;font-family:var(--font-mono);
+  }
+  .supply-chip{
+    padding:13px 18px;font-size:clamp(.95rem,2.4vw,1.4rem);font-weight:800;
+    background:var(--card);border:1px solid var(--line);color:var(--bone);
+    opacity:.35;transform:scale(.9);
+    transition:opacity .5s ease, transform .5s ease, clip-path .35s ease;
+  }
+  .supply-chip.eaten{
+    opacity:1;transform:scale(1);
+    color:var(--lime);border-color:var(--lime);
+    clip-path:polygon(0 0,100% 0,100% 60%,90% 100%,75% 55%,60% 100%,45% 55%,30% 100%,15% 55%,0 100%);
+  }
+  .supply-arrow{color:var(--muted);font-size:1.1rem;}
+  .supply-note{
+    text-align:center;margin-top:30px;color:var(--muted);font-size:.88rem;
+    font-family:var(--font-mono);
+  }
+  .supply-note b{color:var(--ember);}
+
+  /* ---------- features ---------- */
+  .grid3{max-width:1060px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:820px){.grid3{grid-template-columns:1fr;}}
+  .feat{
+    background:var(--card);border:1px solid var(--line);padding:28px 24px;
+    position:relative;overflow:hidden;
+  }
+  .feat::before{
+    content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+    background:linear-gradient(90deg,var(--lime),transparent);
+  }
+  .feat .icon{width:38px;height:38px;margin-bottom:16px;color:var(--lime);}
+  .feat h3{font-family:var(--font-display);font-size:.95rem;text-transform:uppercase;margin-bottom:9px;letter-spacing:.02em;}
+  .feat p{color:var(--muted);font-size:.87rem;line-height:1.6;}
+
+  /* ---------- cta band ---------- */
+  .band{
+    background:var(--bg);
+    text-align:center;
+    padding:10vh 6vw;
+    position:relative;
+    border-top:1px solid var(--line);
+  }
+  .band h2{margin-bottom:16px;}
+  .band-orobo{width:110px;height:110px;margin:0 auto 26px;animation:spin 14s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){.band-orobo,.mascot,.mascot .mouth,.mascot-glow{animation:none;}}
+
+  footer{
+    background:var(--bg2);border-top:1px solid var(--line);
+    padding:36px 6vw;
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;
+  }
+  .foot-brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:.9rem;}
+  .foot-brand svg{width:24px;height:24px;}
+  .foot-social{display:flex;gap:10px;}
+  .foot-note{
+    width:100%;font-family:var(--font-mono);font-size:.7rem;color:var(--muted);
+    line-height:1.6;border-top:1px solid var(--line);padding-top:18px;margin-top:6px;
+  }
+
+  /* ---------- chomp bite click effect ---------- */
+  .chomp-fx{
+    position:fixed;left:0;top:0;pointer-events:none;z-index:9999;
+    width:46px;height:46px;margin:-23px 0 0 -23px;
+    transform:scale(.2) rotate(var(--r,0deg));
+    opacity:0;
+    animation:chompBite .48s cubic-bezier(.2,.9,.3,1) forwards;
+  }
+  .chomp-fx svg{width:100%;height:100%;}
+  @keyframes chompBite{
+    0%{transform:scale(.2) rotate(var(--r,0deg));opacity:0;}
+    22%{transform:scale(1.25) rotate(var(--r,0deg));opacity:1;}
+    45%{transform:scale(.7) rotate(var(--r,0deg));opacity:1;}
+    100%{transform:scale(.45) rotate(var(--r,0deg));opacity:0;}
+  }
+  .chomp-word{
+    position:fixed;left:0;top:0;pointer-events:none;z-index:9999;
+    font-family:var(--font-mono);font-weight:800;font-size:.78rem;color:var(--lime);
+    transform:translate(-50%,-140%);
+    animation:chompWord .6s ease-out forwards;
+    white-space:nowrap;
+  }
+  @keyframes chompWord{
+    0%{opacity:0;transform:translate(-50%,-120%);}
+    30%{opacity:1;transform:translate(-50%,-170%);}
+    100%{opacity:0;transform:translate(-50%,-230%);}
+  }
+
+  /* ---------- feed chomp overlay ---------- */
+  .feed-overlay{
+    position:fixed;inset:0;z-index:200;
+    background:rgba(9,9,8,.82);backdrop-filter:blur(6px);
+    display:flex;align-items:center;justify-content:center;
+    padding:5vh 5vw;
+    opacity:0;pointer-events:none;
+    transition:opacity .25s ease;
+  }
+  .feed-overlay.open{opacity:1;pointer-events:auto;}
+  .feed-panel{
+    width:100%;max-width:640px;max-height:88vh;overflow-y:auto;
+    background:var(--bg2);border:1px solid var(--line);
+    padding:34px 30px 30px;position:relative;
+    transform:translateY(14px) scale(.98);opacity:0;
+    transition:transform .3s ease, opacity .3s ease;
+  }
+  .feed-overlay.open .feed-panel{transform:translateY(0) scale(1);opacity:1;}
+  .feed-close{
+    position:absolute;top:18px;right:18px;
+    width:34px;height:34px;border-radius:50%;
+    background:transparent;border:1px solid var(--line);color:var(--muted);
+    cursor:pointer;font-size:1rem;line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    transition:border-color .2s,color .2s;
+  }
+  .feed-close:hover{border-color:var(--ember);color:var(--ember);}
+  .feed-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--font-mono);font-size:.68rem;letter-spacing:.08em;
+    color:var(--ember);border:1px solid var(--ember);border-radius:999px;
+    padding:6px 14px;margin-bottom:20px;
+  }
+  .feed-badge::before{content:'●';font-size:.6rem;}
+  .feed-head{display:flex;align-items:center;gap:16px;margin-bottom:26px;}
+  .feed-mascot{width:56px;height:56px;flex-shrink:0;}
+  .feed-mascot.bite .mouth-g{animation:feedBite .38s ease;}
+  @keyframes feedBite{0%{transform:scaleY(1);}40%{transform:scaleY(.4);}100%{transform:scaleY(1);}}
+  .feed-head h3{font-family:var(--font-display);font-size:1.3rem;text-transform:uppercase;margin-bottom:6px;}
+  .feed-head p{color:var(--muted);font-size:.85rem;line-height:1.5;}
+
+  .feed-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+  .stat-block{background:var(--card);border:1px solid var(--line);padding:14px 12px;text-align:center;}
+  .stat-block .stat-label{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;}
+  .stat-block .stat-val{font-family:var(--font-mono);font-weight:800;font-size:1rem;color:var(--lime);margin-top:6px;word-break:break-all;}
+  .stat-block:nth-child(2) .stat-val{color:var(--ember);}
+
+  .feed-input-row{display:flex;gap:10px;margin-bottom:12px;}
+  .feed-input-row input{
+    flex:1;background:var(--card);border:1px solid var(--line);color:var(--bone);
+    font-family:var(--font-mono);font-size:.95rem;padding:14px 16px;
+    outline:none;transition:border-color .2s;
+  }
+  .feed-input-row input:focus{border-color:var(--lime);}
+  .feed-input-row input.shake{animation:shakeInput .3s ease;border-color:var(--ember);}
+  @keyframes shakeInput{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .feed-input-row .pill{white-space:nowrap;}
+
+  .feed-quick{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:28px;}
+  .feed-quick button{
+    font-family:var(--font-mono);font-size:.72rem;color:var(--muted);
+    background:transparent;border:1px solid var(--line);border-radius:999px;
+    padding:7px 14px;cursor:pointer;transition:border-color .2s,color .2s;
+  }
+  .feed-quick button:hover{border-color:var(--lime);color:var(--lime);}
+
+  .feed-log-head{
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:var(--font-mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted);border-top:1px solid var(--line);padding-top:18px;margin-bottom:12px;
+  }
+  .feed-log{max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+  .feed-log-empty{color:var(--muted);font-size:.82rem;font-family:var(--font-mono);padding:14px 0;}
+  .feed-log-entry{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:var(--card);border:1px solid var(--line);padding:10px 14px;
+    font-family:var(--font-mono);font-size:.78rem;
+    animation:logIn .3s ease;
+  }
+  @keyframes logIn{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+  .feed-log-entry .fle-amt{color:var(--lime);font-weight:700;}
+  .feed-log-entry .fle-time{color:var(--muted);}
+  .feed-log-entry .fle-tag{color:var(--ember);}
+
+  /* ---------- Hungry Chomp app (local mock) ---------- */
+  .app-overlay{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;overflow:auto;}
+  .app-overlay.open{display:block;}
+  .app-shell{min-height:100vh;display:grid;grid-template-columns:230px 1fr;}
+  .app-side{position:sticky;top:0;height:100vh;padding:28px 22px;background:#151513;border-right:1px solid var(--line);display:flex;flex-direction:column;}
+  .app-brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:.95rem;margin-bottom:38px;}
+  .app-brand svg{width:30px;height:30px;}
+  .app-nav{display:grid;gap:7px;}
+  .app-nav button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--muted);padding:12px 14px;text-align:left;font-weight:700;cursor:pointer;border-radius:8px;}
+  .app-nav button:hover,.app-nav button.active{background:var(--card);color:var(--lime);}
+  .app-env{margin-top:auto;padding:12px;border:1px solid var(--line);font:700 .67rem var(--font-mono);color:var(--ember);line-height:1.5;}
+  .app-main{padding:30px clamp(20px,4vw,56px) 60px;max-width:1240px;width:100%;margin:0 auto;}
+  .app-top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:34px;}
+  .app-top h2{margin:0;font-size:clamp(1.45rem,3vw,2rem);}
+  .app-top p{color:var(--muted);font-size:.86rem;margin-top:7px;}
+  .app-close{position:static;}
+  .app-view{display:none;}
+  .app-view.active{display:block;animation:appIn .2s ease;}
+  @keyframes appIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .app-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px;}
+  .app-card{grid-column:span 4;background:var(--card);border:1px solid var(--line);padding:22px;}
+  .app-card.wide{grid-column:span 8;}.app-card.full{grid-column:1/-1;}
+  .app-label{font:700 .68rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .app-value{font:800 clamp(1.1rem,2.5vw,1.55rem) var(--font-mono);margin-top:10px;color:var(--bone);}
+  .app-value.lime{color:var(--lime)}.app-value.ember{color:var(--ember)}
+  .status-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--line);border-radius:999px;font:700 .68rem var(--font-mono);color:var(--lime);}
+  .status-pill::before{content:'';width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;}
+  .app-address{display:flex;align-items:center;gap:10px;margin-top:14px;}
+  .app-address code{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 .78rem var(--font-mono);color:var(--bone);background:var(--bg);padding:12px;flex:1;border:1px solid var(--line);}
+  .mini-btn{border:1px solid var(--line);background:transparent;color:var(--bone);padding:10px 13px;cursor:pointer;font:700 .72rem var(--font-mono);}
+  .mini-btn:hover{border-color:var(--lime);color:var(--lime)}
+  .token-row,.history-row{display:grid;grid-template-columns:1.2fr .8fr .8fr;gap:14px;align-items:center;padding:15px 0;border-bottom:1px solid var(--line);}
+  .token-row:last-child,.history-row:last-child{border:0}.token-name{font-weight:800}.token-meta{font:.7rem var(--font-mono);color:var(--muted);margin-top:4px}.align-right{text-align:right}
+  .app-note{padding:14px 16px;border-left:3px solid var(--ember);background:rgba(255,90,31,.07);color:var(--muted);font-size:.83rem;line-height:1.6;margin-top:18px;}
+  .wizard-steps{display:flex;gap:8px;margin-bottom:24px;overflow:auto;}
+  .wizard-step{white-space:nowrap;padding:9px 13px;border:1px solid var(--line);font:700 .7rem var(--font-mono);color:var(--muted);}
+  .wizard-step.active{border-color:var(--lime);color:var(--lime)}
+  .wizard-panel{display:none}.wizard-panel.active{display:block}
+  .field{display:grid;gap:8px;margin-bottom:18px}.field label{font:700 .73rem var(--font-mono);color:var(--muted)}
+  .field input,.field select{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--bone);padding:14px;font:600 .9rem var(--font-mono);outline:none;}
+  .field input:focus,.field select:focus{border-color:var(--lime)}
+  .custom-interval{display:none;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+  .custom-interval.show{display:grid;}
+  .field-help{font-size:.73rem;color:var(--muted);line-height:1.5;}
+  .quote-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:18px 0;}
+  .quote-item{background:var(--bg);padding:16px}.quote-item span{display:block;color:var(--muted);font:700 .66rem var(--font-mono);text-transform:uppercase;margin-bottom:7px}.quote-item b{font:800 .9rem var(--font-mono)}
+  .consent{display:flex;align-items:flex-start;gap:12px;padding:17px;border:1px solid var(--ember);background:rgba(255,90,31,.06);font-size:.84rem;line-height:1.55;}
+  .consent input{margin-top:4px;accent-color:var(--lime);width:18px;height:18px;flex:0 0 auto;}
+  .wizard-actions{display:flex;justify-content:space-between;gap:12px;margin-top:24px;}
+  .app-toast{position:fixed;right:24px;bottom:24px;z-index:260;background:var(--lime);color:#121212;padding:13px 18px;font:800 .76rem var(--font-mono);transform:translateY(90px);opacity:0;transition:.25s;}
+  .app-toast.show{transform:none;opacity:1}
+  .mock-qr{width:132px;height:132px;padding:8px;background:#fff;display:grid;grid-template-columns:repeat(7,1fr);gap:2px;flex:0 0 auto;}
+  .mock-qr i{background:#111}.mock-qr i:nth-child(3n){opacity:.1}
+  .deposit-layout{display:flex;gap:24px;align-items:center;margin-top:18px;}
+  @media(max-width:800px){.app-shell{display:block}.app-side{position:static;height:auto;padding:16px 18px;border-right:0;border-bottom:1px solid var(--line)}.app-brand{margin:0 0 14px}.app-nav{display:flex;overflow:auto}.app-nav button{white-space:nowrap}.app-env{display:none}.app-main{padding-top:22px}.app-card,.app-card.wide{grid-column:1/-1}.deposit-layout{align-items:flex-start;flex-direction:column}.app-top{align-items:flex-start}.quote-grid{grid-template-columns:1fr}.token-row,.history-row{grid-template-columns:1fr auto}.token-row>:last-child,.history-row>:last-child{grid-column:1/-1;text-align:left}.nav-right .icon-btn{display:none}.nav-buy{padding:10px 12px;font-size:.7rem}}
+  @media(max-width:480px){.nav-right .nav-buy:first-of-type{display:none}.app-main{padding-inline:15px}.app-card{padding:17px}}
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<nav>
+  <div class="brand">
+    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#121212" stroke="#d4ff4f" stroke-width="2"/><circle cx="34" cy="42" r="7" fill="#f2efe6"/><circle cx="66" cy="42" r="7" fill="#f2efe6"/><path d="M24 58 L32 74 L40 58 L48 74 L56 58 L64 74 L72 58 L76 60 L76 54 L24 54 Z" fill="#f2efe6"/></svg>
+    $CHOMP
+  </div>
+  <div class="navlinks">
+    <a href="#cycle">The Cycle</a>
+    <a href="#eater">Supply</a>
+    <a href="#features">Utility</a>
+  </div>
+  <div class="nav-right">
+    <a class="icon-btn chomp-trigger" href="#" target="_blank" rel="noopener" aria-label="X / Twitter">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-7l-5.5-7.2L4.5 22H1.4l8.1-9.3L1 2h7.2l5 6.6L18.9 2zm-1.2 18h1.7L6.4 3.9H4.6L17.7 20z"/></svg>
+    </a>
+    <a class="icon-btn chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener" aria-label="Telegram">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.6 20c-.2 1.1-.9 1.3-1.8.8l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.2-8.3c.4-.4-.1-.6-.6-.2L6.2 13 1.3 11.5c-1.1-.3-1.1-1.1.2-1.6l19.1-7.4c.9-.3 1.7.2 1.3 1.8z"/></svg>
+    </a>
+    <a class="nav-buy chomp-trigger" style="background:transparent;border:1px solid var(--lime);color:var(--lime);text-decoration:none;" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">Launch App</a>
+    <button class="nav-buy chomp-trigger" onclick="window.open('https://pump.fun/', '_blank')">Buy on Pump.fun</button>
+  </div>
+</nav>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>CHOMP NEVER GETS FULL. <b>◆</b> THE HUNGER NEVER ENDS. <b>◆</b> YOU FEED. IT EATS. SUPPLY DISAPPEARS. <b>◆</b> THE LAST TOKEN ISN'T SAFE. <b>◆</b></span>
+    <span>CHOMP NEVER GETS FULL. <b>◆</b> THE HUNGER NEVER ENDS. <b>◆</b> YOU FEED. IT EATS. SUPPLY DISAPPEARS. <b>◆</b> THE LAST TOKEN ISN'T SAFE. <b>◆</b></span>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="eyebrow">the supply eater</div>
+
+  <div class="mascot-wrap">
+    <div class="mascot-glow"></div>
+    <svg class="mascot" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="94" fill="#121212" stroke="#d4ff4f" stroke-width="2" stroke-dasharray="2 6"/>
+      <circle cx="68" cy="80" r="13" fill="#f2efe6"/>
+      <circle cx="132" cy="80" r="13" fill="#f2efe6"/>
+      <circle cx="71" cy="76" r="4" fill="#121212"/>
+      <circle cx="135" cy="76" r="4" fill="#121212"/>
+      <g class="mouth">
+        <path d="M48 118 L60 150 L72 118 L84 150 L96 118 L108 150 L120 118 L132 150 L144 118 L152 122 L152 112 L48 112 Z" fill="#f2efe6"/>
+      </g>
+    </svg>
+  </div>
+
+  <h1>Chomp <span class="hl">never</span> gets full.</h1>
+  <p class="sub">Deposit tokens. CHOMP eats them on a cycle you set — and keeps eating the fractions after, all the way down. The hunger never ends.</p>
+
+  <div class="hero-actions">
+    <div class="action-row">
+      <a class="pill solid chomp-trigger" href="https://pump.fun/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/></svg>
+        Buy on Pump.fun
+      </a>
+      <a class="pill ghost chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M8 19V9l4-6 4 6v10"/></svg>
+        Launch App
+      </a>
+      <a class="pill ghost chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        Telegram
+      </a>
+      <a class="pill ghost chomp-trigger" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4l16 16M20 4 4 20"/></svg>
+        Follow on X
+      </a>
+    </div>
+
+    <div class="ca-row">
+      <span>CA:</span>
+      <span class="ca-val" id="ca-display">Chomp1111111111111111111111111111111111</span>
+      <button id="copy-ca" class="chomp-trigger" onclick="copyCA(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        <span id="copy-label">Copy</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<div class="bite-divider"></div>
+
+<section id="cycle">
+  <div class="section-head">
+    <div class="kicker">how the loop works</div>
+    <h2>Feed it. Chomp it. Burn it. Repeat.</h2>
+    <p>Four steps, one closed loop. It's not a queue you finish — it's a mouth that never stops moving.</p>
+  </div>
+  <div class="loop">
+    <div class="loop-card">
+      <div class="loop-num">STAGE 01</div>
+      <div class="loop-title">Feed</div>
+      <p>Deposit any amount into the bot. CHOMP doesn't care how big or how small — everything goes in the same mouth.</p>
+      <div class="loop-arrow">→</div>
+    </div>
+    <div class="loop-card">
+      <div class="loop-num">STAGE 02</div>
+      <div class="loop-title">Chomp</div>
+      <p>On your selected cycle, CHOMP takes a bite of what's deposited. No off switch, no snooze button.</p>
+      <div class="loop-arrow">→</div>
+    </div>
+    <div class="loop-card">
+      <div class="loop-num">STAGE 03</div>
+      <div class="loop-title">Burn</div>
+      <p>What's bitten is gone for good. Sent where nothing comes back from. Supply, permanently smaller.</p>
+      <div class="loop-arrow">→</div>
+    </div>
+    <div class="loop-card">
+      <div class="loop-num">STAGE 04</div>
+      <div class="loop-title">Repeat</div>
+      <p>Even at 1 token, CHOMP keeps eating fractions of it. 0.1. 0.01. Forever, conceptually. The loop closes on itself.</p>
+      <div class="loop-arrow">↺</div>
+    </div>
+  </div>
+</section>
+
+<div class="bite-divider" style="transform:scaleY(-1);"></div>
+
+<section id="eater" class="eater">
+  <div class="section-head">
+    <div class="kicker">the last token isn't safe</div>
+    <h2>Watch the supply go to zero. Sort of.</h2>
+    <p>Scroll and CHOMP takes a bite out of every order of magnitude, down to fractions that keep splitting.</p>
+  </div>
+  <div class="supply-row">
+    <div class="supply-chip" data-eat>1,000,000,000</div>
+    <span class="supply-arrow">›</span>
+    <div class="supply-chip" data-eat>1,000,000</div>
+    <span class="supply-arrow">›</span>
+    <div class="supply-chip" data-eat>1,000</div>
+    <span class="supply-arrow">›</span>
+    <div class="supply-chip" data-eat>1</div>
+    <span class="supply-arrow">›</span>
+    <div class="supply-chip" data-eat>0.1</div>
+    <span class="supply-arrow">›</span>
+    <div class="supply-chip" data-eat>0.01</div>
+    <span class="supply-arrow">›</span>
+    <div class="supply-chip" data-eat>…</div>
+  </div>
+  <p class="supply-note">Even the fraction gets a bite taken out of it. <b>That's the point.</b></p>
+</section>
+
+<section id="features">
+  <div class="section-head">
+    <div class="kicker">what the bot actually does</div>
+    <h2>A utility bot, not just a mascot.</h2>
+    <p>Under the teeth is a plain deposit-and-burn mechanism. Here's what you're actually setting up.</p>
+  </div>
+  <div class="grid3">
+    <div class="feat">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+      <h3>Deposit Anytime</h3>
+      <p>Send tokens to CHOMP whenever you want. No minimum, no maximum, no waiting for a "feeding window."</p>
+    </div>
+    <div class="feat">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <h3>Pick the Cycle</h3>
+      <p>Choose how often CHOMP chomps — hourly, daily, weekly. The bot bites on schedule, every time, no exceptions.</p>
+    </div>
+    <div class="feat">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/></svg>
+      <h3>Auto-Burn</h3>
+      <p>Every bite is sent to a burn address automatically. What's eaten never comes back — you don't have to trust a promise.</p>
+    </div>
+    <div class="feat">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19h16M4 15l4-6 4 3 4-8 4 5"/></svg>
+      <h3>Live Supply Tracker</h3>
+      <p>See exactly how much has been fed, chomped, and burned — running totals, no spreadsheets required.</p>
+    </div>
+    <div class="feat">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <h3>Fraction Mode</h3>
+      <p>Once the pool drops below 1 token, CHOMP switches to eating fractions of fractions. The loop doesn't need to stop to work.</p>
+    </div>
+    <div class="feat">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <h3>Open Burn Log</h3>
+      <p>Every chomp is a transaction anyone can check. Nothing about the eating happens off the record.</p>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <svg class="band-orobo" viewBox="0 0 200 200">
+    <g>
+      <path d="M100 20a80 80 0 100 160 80 80 0 000-160z" fill="none" stroke="#d4ff4f" stroke-width="2" stroke-dasharray="4 10"/>
+      <circle cx="100" cy="35" r="9" fill="#f2efe6"/>
+      <circle cx="97" cy="32" r="2.4" fill="#121212"/>
+      <path d="M78 42 L84 58 L90 42 L96 58 L102 42 L108 58 L114 42 L118 44 L118 38 L78 38 Z" fill="#f2efe6" transform="rotate(6 98 48)"/>
+    </g>
+  </svg>
+  <h2>1B → 1M → 1 → 0.1 → 0.01 → …</h2>
+  <p class="sub" style="margin:0 auto;">You feed. It eats. Supply disappears. The last token isn't safe.</p>
+  <div class="action-row" style="margin-top:32px;">
+    <a class="pill solid chomp-trigger" href="https://pump.fun/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/></svg>
+      Buy on Pump.fun
+    </a>
+    <a class="pill ghost chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M8 19V9l4-6 4 6v10"/></svg>
+      Launch App
+    </a>
+    <a class="pill ghost chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      Join Telegram
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="foot-brand">
+    <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#121212" stroke="#d4ff4f" stroke-width="2"/><circle cx="34" cy="42" r="7" fill="#f2efe6"/><circle cx="66" cy="42" r="7" fill="#f2efe6"/><path d="M24 58 L32 74 L40 58 L48 74 L56 58 L64 74 L72 58 L76 60 L76 54 L24 54 Z" fill="#f2efe6"/></svg>
+    $CHOMP
+  </div>
+  <div class="foot-social">
+    <a class="icon-btn chomp-trigger" href="#" target="_blank" rel="noopener" aria-label="X / Twitter">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 2H22l-7.6 8.7L23.3 22h-7l-5.5-7.2L4.5 22H1.4l8.1-9.3L1 2h7.2l5 6.6L18.9 2zm-1.2 18h1.7L6.4 3.9H4.6L17.7 20z"/></svg>
+    </a>
+    <a class="icon-btn chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener" aria-label="Telegram">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.6 20c-.2 1.1-.9 1.3-1.8.8l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.2-8.3c.4-.4-.1-.6-.6-.2L6.2 13 1.3 11.5c-1.1-.3-1.1-1.1.2-1.6l19.1-7.4c.9-.3 1.7.2 1.3 1.8z"/></svg>
+    </a>
+    <a class="icon-btn chomp-trigger" href="https://pump.fun/" target="_blank" rel="noopener" aria-label="Pump.fun">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/></svg>
+    </a>
+  </div>
+  <p class="foot-note">$CHOMP is a deposit-and-burn mechanism concept. Demo site — no real transactions occur here. The contract address shown is a placeholder; replace it with the real mint address before launch. Nothing on this page is financial advice; tokens and burn mechanics carry risk, so do your own research before depositing anywhere.</p>
+</footer>
+
+<div class="app-overlay" id="feedOverlay" role="dialog" aria-modal="true" aria-labelledby="appTitle">
+  <div class="app-shell">
+    <aside class="app-side">
+      <div class="app-brand">
+        <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="#121212" stroke="#d4ff4f" stroke-width="2"/><circle cx="34" cy="42" r="7" fill="#f2efe6"/><circle cx="66" cy="42" r="7" fill="#f2efe6"/><path d="M24 58 L32 74 L40 58 L48 74 L56 58 L64 74 L72 58 L76 60 L76 54 L24 54 Z" fill="#f2efe6"/></svg>
+        HUNGRY CHOMP
+      </div>
+      <div class="app-nav" aria-label="App navigation">
+        <button class="active" data-app-view="dashboard">Overview</button>
+        <button data-app-view="deposit">Deposit</button>
+        <button data-app-view="create">Create loop</button>
+        <button data-app-view="loop">My loop</button>
+        <button data-app-view="security">Security</button>
+      </div>
+      <div class="app-env">● LOCAL MOCK<br>No network or tokens</div>
+    </aside>
+    <main class="app-main">
+      <header class="app-top">
+        <div><h2 id="appTitle">Welcome back, Chomper</h2><p id="appSubtitle">Your automated burn loop at a glance.</p></div>
+        <button class="feed-close app-close" onclick="closeFeed()" aria-label="Close app">✕</button>
+      </header>
+
+      <section class="app-view active" data-view="dashboard">
+        <div class="app-grid">
+          <article class="app-card"><div class="app-label">Loop status</div><div class="app-value"><span class="status-pill" id="dashStatus">No active loop</span></div></article>
+          <article class="app-card"><div class="app-label">Confirmed balance</div><div class="app-value lime">5,000 CHOMP</div><div class="token-meta">Observed just now · mock</div></article>
+          <article class="app-card"><div class="app-label">SOL balance</div><div class="app-value">0.125 SOL</div><div class="token-meta">Confirmed · mock</div></article>
+          <article class="app-card wide"><div class="app-label">Custody deposit address</div><div class="app-address"><code id="walletAddress">7yChompMockWallet8nW4tM2qR5sV9xK3pL6dF1aB</code><button class="mini-btn" onclick="copyText('walletAddress')">Copy</button></div><div class="app-note">Send only supported Solana tokens and SOL to this address. This local preview does not create a wallet or observe the blockchain.</div></article>
+          <article class="app-card"><div class="app-label">Next action</div><div class="app-value" style="font-family:var(--font-body)">Create your first loop</div><button class="pill solid" style="margin-top:18px" onclick="showAppView('create')">Set up loop</button></article>
+          <article class="app-card full"><div class="app-label">Balances</div><div class="token-row"><div><div class="token-name">CHOMP</div><div class="token-meta">ChompMockMint...3eAt</div></div><div class="align-right"><b>5,000</b><div class="token-meta">Token balance</div></div><div class="align-right"><button class="mini-btn" onclick="mockRefresh(this)">Refresh</button></div></div></article>
+        </div>
+      </section>
+
+      <section class="app-view" data-view="deposit">
+        <article class="app-card full"><div class="app-label">Your dedicated custody wallet</div><div class="deposit-layout"><div class="mock-qr" aria-label="Illustrative QR placeholder"></div><div style="flex:1"><h3>Deposit on Solana</h3><p style="color:var(--muted);line-height:1.6;margin-top:8px">Send the token you want Chomp to burn, plus the SOL required by your server-generated activation quote.</p><div class="app-address"><code id="depositAddress">7yChompMockWallet8nW4tM2qR5sV9xK3pL6dF1aB</code><button class="mini-btn" onclick="copyText('depositAddress')">Copy</button></div><div class="app-note"><b style="color:var(--ember)">Solana network only.</b> Committed tokens cannot be withdrawn, transferred, sold, reclaimed, paused, or deleted by a normal user.</div><button class="pill ghost" style="margin-top:18px" onclick="mockRefresh(this)">Refresh confirmed balances</button></div></div></article>
+      </section>
+
+      <section class="app-view" data-view="create">
+        <article class="app-card full">
+          <div class="wizard-steps"><div class="wizard-step active">1 Token</div><div class="wizard-step">2 Settings</div><div class="wizard-step">3 Quote</div><div class="wizard-step">4 Consent</div></div>
+          <div class="wizard-panel active" data-step="0"><div class="app-label">Choose a confirmed token</div><div class="token-row" style="margin-top:14px"><div><div class="token-name">CHOMP</div><div class="token-meta">ChompMockMint...3eAt · verified mock fixture</div></div><div class="align-right">5,000 available</div><div class="align-right"><span class="status-pill">Selected</span></div></div></div>
+          <div class="wizard-panel" data-step="1"><div class="field"><label for="burnPercent">Percentage of remaining balance per burn</label><input id="burnPercent" type="number" min="0.01" max="100" step="0.01" value="1"></div><div class="field"><label for="burnInterval">Burn interval</label><select id="burnInterval" onchange="toggleCustomInterval()"><option value="3600">Every hour</option><option value="21600">Every 6 hours</option><option value="86400">Every day</option><option value="604800">Every week</option><option value="custom">Custom interval…</option></select><div class="custom-interval" id="customInterval"><input id="customIntervalValue" type="number" min="1" max="30" step="1" value="2" aria-label="Custom interval value"><select id="customIntervalUnit" aria-label="Custom interval unit"><option value="60">Minutes</option><option value="3600" selected>Hours</option><option value="86400">Days</option></select></div><div class="field-help">Custom schedules must be between 1 minute and 30 days.</div></div><div class="app-note">Burns use the then-current confirmed token balance. Missed intervals are not replayed.</div></div>
+          <div class="wizard-panel" data-step="2"><div class="app-label">Server-style quote · expires in <span id="quoteTimer">09:59</span></div><div class="quote-grid"><div class="quote-item"><span>Token</span><b>CHOMP</b></div><div class="quote-item"><span>Confirmed balance</span><b>5,000 CHOMP</b></div><div class="quote-item"><span>Burn percentage</span><b id="quotePercent">1%</b></div><div class="quote-item"><span>Interval</span><b id="quoteInterval">Every hour</b></div><div class="quote-item"><span>Estimated first burn</span><b id="quoteBurn">50 CHOMP</b></div><div class="quote-item"><span>Minimum starting fee</span><b>0.1 SOL (mock)</b></div><div class="quote-item"><span>SOL collection policy</span><b>Full confirmed balance</b></div><div class="quote-item"><span>Activation delay</span><b>6 seconds (mock)</b></div></div><div class="app-note">Display calculations are illustrative. In production, every value and policy must come from the approved Hungry Chomp Partner API quote.</div></div>
+          <div class="wizard-panel" data-step="3"><div class="app-label">Irreversible commitment</div><h3 style="margin:12px 0">Review before creating this loop</h3><p style="color:var(--muted);line-height:1.65;margin-bottom:18px">You are committing CHOMP tokens held at the displayed custody address to an automated burn-only schedule. A normal user can edit only the percentage and interval.</p><label class="consent"><input type="checkbox" id="consentCheck"><span>I understand that committed tokens cannot be withdrawn, transferred, sold, reclaimed, paused, or deleted, and I accept consent version <b>chomp-loop-v1</b>.</span></label></div>
+          <div class="wizard-actions"><button class="pill ghost" id="wizardBack" onclick="wizardMove(-1)" disabled>Back</button><button class="pill solid" id="wizardNext" onclick="wizardMove(1)">Continue</button></div>
+        </article>
+      </section>
+
+      <section class="app-view" data-view="loop">
+        <div class="app-grid"><article class="app-card"><div class="app-label">Status</div><div class="app-value"><span class="status-pill" id="loopStatus">No active loop</span></div></article><article class="app-card"><div class="app-label">Total burned</div><div class="app-value ember" id="loopBurned">0 CHOMP</div></article><article class="app-card"><div class="app-label">Next burn</div><div class="app-value" id="loopNext">—</div></article><article class="app-card wide"><div class="app-label">Schedule settings</div><div class="quote-grid"><div class="quote-item"><span>Percentage</span><b id="loopPercent">—</b></div><div class="quote-item"><span>Interval</span><b id="loopInterval">—</b></div></div><button class="mini-btn" onclick="showAppView('create')">Edit permitted fields</button></article><article class="app-card"><div class="app-label">Custody policy</div><div class="app-value" style="font-family:var(--font-body);font-size:1rem">Irreversible burn only</div><div class="token-meta" style="margin-top:9px">Withdraw and pause are unavailable.</div></article><article class="app-card full"><div class="app-label">Burn history</div><div id="historyEmpty" class="feed-log-empty">No confirmed burns yet.</div><div id="burnHistory"></div></article></div>
+      </section>
+
+      <section class="app-view" data-view="security"><article class="app-card full"><div class="app-label">Account & security</div><h3 style="margin:12px 0">Local preview account</h3><p style="color:var(--muted);line-height:1.7">Authentication, passkeys, recovery, sessions, and sign-out-all require a secure website backend and are intentionally not simulated as real security controls in this static file.</p><div class="app-note">Production requires HTTP-only same-site cookies, session rotation, CSRF protection, recent-auth checks, rate limits, immutable opaque user IDs, and audited recovery.</div></article></section>
+    </main>
+  </div>
+</div>
+<div class="app-toast" id="appToast" role="status" aria-live="polite"></div>
+
+<script>
+  // ----- supply chips bite-reveal on scroll -----
+  const chips = document.querySelectorAll('[data-eat]');
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach((e)=>{
+      if(e.isIntersecting){
+        const idx = Array.from(chips).indexOf(e.target);
+        setTimeout(()=> e.target.classList.add('eaten'), idx*160);
+        io.unobserve(e.target);
+      }
+    });
+  }, {threshold:.6});
+  chips.forEach(c=>io.observe(c));
+
+  // ----- copy CA -----
+  function copyCA(evt){
+    evt.preventDefault();
+    const ca = document.getElementById('ca-display').textContent.trim();
+    const btn = document.getElementById('copy-ca');
+    const label = document.getElementById('copy-label');
+    const done = ()=>{
+      label.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(()=>{ label.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+    };
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(ca).then(done).catch(()=>{
+        label.textContent = 'Copy failed';
+        setTimeout(()=>{ label.textContent = 'Copy'; }, 1500);
+      });
+    } else {
+      const t = document.createElement('textarea');
+      t.value = ca; document.body.appendChild(t); t.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      document.body.removeChild(t);
+      done();
+    }
+  }
+
+  // ----- chomp bite finger/click effect -----
+  const MOUTH_SVG = `
+    <svg viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="46" fill="rgba(18,18,18,.92)" stroke="#d4ff4f" stroke-width="4"/>
+      <path d="M20 44 L30 66 L40 44 L50 66 L60 44 L70 66 L80 44 L84 46 L84 38 L20 38 Z" fill="#f2efe6"/>
+    </svg>`;
+  const WORDS = ['CHOMP!','NOM!','GULP!','OM NOM!','BITTEN!'];
+
+  function spawnChomp(x, y){
+    const fx = document.createElement('div');
+    fx.className = 'chomp-fx';
+    fx.style.left = x + 'px';
+    fx.style.top = y + 'px';
+    fx.style.setProperty('--r', (Math.random()*40 - 20) + 'deg');
+    fx.innerHTML = MOUTH_SVG;
+    document.body.appendChild(fx);
+    fx.addEventListener('animationend', ()=> fx.remove());
+
+    const word = document.createElement('div');
+    word.className = 'chomp-word';
+    word.style.left = x + 'px';
+    word.style.top = y + 'px';
+    word.textContent = WORDS[Math.floor(Math.random()*WORDS.length)];
+    document.body.appendChild(word);
+    word.addEventListener('animationend', ()=> word.remove());
+  }
+
+  document.querySelectorAll('.chomp-trigger').forEach(el=>{
+    el.addEventListener('click', (e)=>{
+      const x = e.clientX || (el.getBoundingClientRect().left + el.getBoundingClientRect().width/2);
+      const y = e.clientY || (el.getBoundingClientRect().top + el.getBoundingClientRect().height/2);
+      spawnChomp(x, y);
+    });
+  });
+
+  // ----- Hungry Chomp local mock app -----
+  const feedOverlay = document.getElementById('feedOverlay');
+  const appToast = document.getElementById('appToast');
+  let wizardStep = 0;
+  let quoteEndsAt = 0;
+  let loopCreated = false;
+  let lastFocused = null;
+  let csrfToken = '';
+  let currentQuote = null;
+
+  function openFeed(e){
+    if(e){e.preventDefault();e.stopPropagation();}
+    window.open('https://t.me/Shrink_loop','_blank','noopener');
+  }
+  function closeFeed(){
+    feedOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+    if(lastFocused) lastFocused.focus();
+  }
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape' && feedOverlay.classList.contains('open')) closeFeed();
+    if(e.key === 'Tab' && feedOverlay.classList.contains('open')){
+      const focusable = [...feedOverlay.querySelectorAll('button:not([disabled]),input,select,a[href]')];
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if(e.shiftKey && document.activeElement === first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey && document.activeElement === last){e.preventDefault();first.focus();}
+    }
+  });
+
+  document.querySelectorAll('[data-app-view]').forEach(btn=>btn.addEventListener('click',()=>showAppView(btn.dataset.appView)));
+  function showAppView(name){
+    document.querySelectorAll('.app-view').forEach(v=>v.classList.toggle('active',v.dataset.view===name));
+    document.querySelectorAll('[data-app-view]').forEach(b=>b.classList.toggle('active',b.dataset.appView===name));
+    const titles={dashboard:['Welcome back, Chomper','Your automated burn loop at a glance.'],deposit:['Fund your Chomp wallet','Deposit supported tokens on Solana.'],create:['Create a burn loop','Choose a token, schedule, and review an exact quote.'],loop:['Your burn loop','Schedule, status, and confirmed history.'],security:['Account & security','Manage access to your Hungry Chomp account.']};
+    document.getElementById('appTitle').textContent=titles[name][0];document.getElementById('appSubtitle').textContent=titles[name][1];
+    document.querySelector('.app-main').scrollTo({top:0,behavior:'smooth'});
+  }
+  function toast(message){appToast.textContent=message;appToast.classList.add('show');setTimeout(()=>appToast.classList.remove('show'),1800);}
+  async function ensureLocalSession(){
+    if(csrfToken)return;
+    try{
+      let response=await fetch('/api/local-session'),data=await response.json();
+      if(response.status===401){response=await fetch('/api/local-session',{method:'POST'});data=await response.json();}
+      if(!response.ok)throw new Error(data.error?.message||'Session unavailable');
+      csrfToken=data.csrf_token;
+      const [wallet,balances]=await Promise.all([fetch('/api/wallet').then(r=>r.json()),fetch('/api/balances').then(r=>r.json())]);
+      document.getElementById('walletAddress').textContent=wallet.address;document.getElementById('depositAddress').textContent=wallet.address;
+      await loadExistingLoop();
+      toast('Secure local mock session started');
+    }catch(err){toast('Open this page through the local server to use the API');}
+  }
+  async function loadExistingLoop(){
+    const response=await fetch('/api/loops');if(!response.ok)return;
+    const data=await response.json(),loop=data.items[0];if(!loop)return;
+    loopCreated=true;
+    const active=loop.status==='active';
+    document.getElementById('dashStatus').textContent=active?'Active':'Pending activation';
+    document.getElementById('loopStatus').textContent=active?'Confirmed · active':'Activation submitted';
+    document.getElementById('loopPercent').textContent=(loop.percentage_bps/100)+'%';
+    document.getElementById('loopInterval').textContent=formatInterval(loop.interval_seconds);
+    document.getElementById('loopNext').textContent=loop.next_run_at?new Date(loop.next_run_at).toLocaleString():'Reconciling';
+    document.getElementById('loopBurned').textContent=(loop.total_burned_ui||'0')+' CHOMP';
+    const history=document.getElementById('burnHistory'),empty=document.getElementById('historyEmpty');history.textContent='';
+    const burns=loop.burns||[];empty.style.display=burns.length?'none':'';
+    burns.forEach(burn=>{const row=document.createElement('div');row.className='history-row';const name=document.createElement('div'),amount=document.createElement('div'),status=document.createElement('div');name.innerHTML='<div class="token-name">Simulated burn</div><div class="token-meta">'+new Date(burn.confirmed_at).toLocaleString()+'</div>';amount.className='align-right';amount.textContent='-'+burn.ui_amount+' CHOMP';status.className='align-right';status.innerHTML='<span class="status-pill">Confirmed mock</span>';row.append(name,amount,status);history.appendChild(row);});
+  }
+  function formatInterval(seconds){
+    if(seconds%86400===0)return `Every ${seconds/86400} day${seconds===86400?'':'s'}`;
+    if(seconds%3600===0)return `Every ${seconds/3600} hour${seconds===3600?'':'s'}`;
+    return `Every ${seconds/60} minute${seconds===60?'':'s'}`;
+  }
+  async function copyText(id){
+    const value=document.getElementById(id).textContent.trim();
+    try{await navigator.clipboard.writeText(value);toast('Copied to clipboard');}
+    catch(err){toast('Copy failed — select the address manually');}
+  }
+  function mockRefresh(button){
+    const old=button.textContent;button.disabled=true;button.textContent='Refreshing…';
+    setTimeout(()=>{button.disabled=false;button.textContent=old;toast('Confirmed mock balances refreshed');},900);
+  }
+  document.querySelectorAll('.mock-qr').forEach(qr=>{for(let i=0;i<49;i++)qr.appendChild(document.createElement('i'));});
+
+  function toggleCustomInterval(){
+    const custom=document.getElementById('burnInterval').value==='custom';
+    document.getElementById('customInterval').classList.toggle('show',custom);
+    if(custom)document.getElementById('customIntervalValue').focus();
+  }
+  function selectedInterval(){
+    const select=document.getElementById('burnInterval');
+    if(select.value!=='custom')return {seconds:Number(select.value),label:select.options[select.selectedIndex].text};
+    const value=Number(document.getElementById('customIntervalValue').value);
+    const unit=document.getElementById('customIntervalUnit');
+    const seconds=value*Number(unit.value);
+    if(!Number.isInteger(value)||value<1||seconds<60||seconds>2592000)return null;
+    const unitName=unit.options[unit.selectedIndex].text.toLowerCase();
+    return {seconds,label:`Every ${value} ${value===1?unitName.replace(/s$/,''):unitName}`};
+  }
+
+  async function wizardMove(direction){
+    if(direction>0 && wizardStep===3){await createMockLoop();return;}
+    if(direction>0 && wizardStep===1 && !(await buildQuote()))return;
+    wizardStep=Math.max(0,Math.min(3,wizardStep+direction));
+    document.querySelectorAll('.wizard-panel').forEach((p,i)=>p.classList.toggle('active',i===wizardStep));
+    document.querySelectorAll('.wizard-step').forEach((p,i)=>p.classList.toggle('active',i===wizardStep));
+    const back=document.getElementById('wizardBack'),next=document.getElementById('wizardNext');
+    back.disabled=wizardStep===0;next.textContent=wizardStep===3?'Create loop':'Continue';
+  }
+  async function buildQuote(){
+    const percent=Math.max(.01,Math.min(100,Number(document.getElementById('burnPercent').value)||1));
+    const interval=selectedInterval();
+    if(!interval){toast('Choose a custom interval from 1 minute to 30 days');return false;}
+    try{
+      await ensureLocalSession();
+      const response=await fetch('/api/loop-quotes',{method:'POST',headers:{'content-type':'application/json','x-csrf-token':csrfToken},body:JSON.stringify({mint:'ChompMockMint11111111111111111111111113eAt',percentage_bps:Math.round(percent*100),interval_seconds:interval.seconds})});
+      currentQuote=await response.json();if(!response.ok)throw new Error(currentQuote.error?.message||'Quote unavailable');
+    }catch(err){toast(err.message);return false;}
+    document.getElementById('quotePercent').textContent=percent+'%';
+    document.getElementById('quoteInterval').textContent=interval.label;
+    document.getElementById('quoteBurn').textContent=(5000*percent/100).toLocaleString(undefined,{maximumFractionDigits:6})+' CHOMP';
+    quoteEndsAt=new Date(currentQuote.expires_at).getTime();
+    return true;
+  }
+  async function createMockLoop(){
+    if(!document.getElementById('consentCheck').checked){toast('You must actively accept the irreversible terms');return;}
+    if(quoteEndsAt<Date.now()){toast('Quote expired — request a fresh quote');wizardStep=1;wizardMove(1);return;}
+    const percent=document.getElementById('quotePercent').textContent,interval=document.getElementById('quoteInterval').textContent;
+    try{
+      const response=await fetch('/api/loops',{method:'POST',headers:{'content-type':'application/json','x-csrf-token':csrfToken,'idempotency-key':crypto.randomUUID()},body:JSON.stringify({quote_id:currentQuote.quote_id,accepted_consent_version:'chomp-loop-v1',percentage_bps:currentQuote.percentage_bps,interval_seconds:currentQuote.interval_seconds})});
+      const result=await response.json();if(!response.ok)throw new Error(result.error?.message||'Loop unavailable');
+    }catch(err){toast(err.message);return;}
+    loopCreated=true;
+    document.getElementById('dashStatus').textContent='Pending activation';
+    document.getElementById('loopStatus').textContent='Activation submitted';
+    document.getElementById('loopPercent').textContent=percent;
+    document.getElementById('loopInterval').textContent=interval;
+    document.getElementById('loopNext').textContent='Reconciling';
+    toast('Mock loop created idempotently');showAppView('loop');
+    setTimeout(async()=>{if(!loopCreated)return;await loadExistingLoop();toast('Mock activation and first burn confirmed');},6500);
+  }
+  setInterval(()=>{if(!quoteEndsAt)return;const left=Math.max(0,quoteEndsAt-Date.now()),m=Math.floor(left/60000),s=Math.floor(left%60000/1000);document.getElementById('quoteTimer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');},1000);
+</script>
+
+</body>
+</html>
