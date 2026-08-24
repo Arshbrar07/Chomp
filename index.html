@@ -147,7 +147,7 @@
   @keyframes pulse{0%,100%{transform:scale(1);opacity:.7;}50%{transform:scale(1.12);opacity:1;}}
   .mascot{position:relative;width:100%;height:100%;animation:float 4.5s ease-in-out infinite;}
   @keyframes float{0%,100%{transform:translateY(0) rotate(-1deg);}50%{transform:translateY(-10px) rotate(1deg);}}
-  .mascot .mouth{transform-origin:100px 148px;animation:chomp 1.6s ease-in-out infinite;}
+  .mascot .mouth{transform-box:fill-box;transform-origin:center;animation:chomp 1.6s ease-in-out infinite;}
   @keyframes chomp{0%,100%{transform:scaleY(1);}50%{transform:scaleY(.55);}}
 
   h1{
@@ -520,11 +520,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/></svg>
         Buy on Pump.fun
       </a>
-      <a class="pill ghost chomp-trigger" href="https://t.me/jacjustacoin" target="_blank" rel="noopener">
+      <a class="pill ghost chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M8 19V9l4-6 4 6v10"/></svg>
         Launch App
       </a>
-      <a class="pill ghost chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">
+      <a class="pill ghost chomp-trigger" href="https://t.me/jacjustacoin" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         Telegram
       </a>
@@ -682,11 +682,11 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/></svg>
       Buy on Pump.fun
     </a>
-    <a class="pill ghost chomp-trigger" href="https://t.me/jacjustacoin" target="_blank" rel="noopener">
+    <a class="pill ghost chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16M8 19V9l4-6 4 6v10"/></svg>
       Launch App
     </a>
-    <a class="pill ghost chomp-trigger" href="https://t.me/Shrink_loop" target="_blank" rel="noopener">
+    <a class="pill ghost chomp-trigger" href="https://t.me/jacjustacoin" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       Join Telegram
     </a>
@@ -1019,8 +1019,13 @@
       row.append(date,amount,link);log.appendChild(row);
     });
   }
-  loadPublicMetrics();
-  setInterval(loadPublicMetrics,60000);
+    loadPublicMetrics();
+    const liveMetricsTimer=setInterval(()=>{
+      if(document.visibilityState==='visible')loadPublicMetrics();
+    },300000);
+    document.addEventListener('visibilitychange',()=>{
+      if(document.visibilityState==='visible')loadPublicMetrics();
+    });
 </script>
 
 </body>
