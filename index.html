@@ -270,7 +270,7 @@
   .walker-leg.left{left:18px;animation:legStep .38s ease-in-out infinite alternate}.walker-leg.right{right:18px;animation:legStep .38s ease-in-out infinite alternate-reverse}
   @keyframes walkAcross{0%{transform:translateX(0)}90%,100%{transform:translateX(calc(min(620px,92vw) + 100px))}}
   @keyframes walkerBob{to{transform:translateY(-5px)}}
-  @keyframes walkerChomp{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.42)}}
+  @keyframes walkerChomp{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.48)}}
   @keyframes legStep{from{transform:rotate(24deg)}to{transform:rotate(-24deg)}}
   .supply-pellet:nth-child(1){animation-name:eatOne}.supply-pellet:nth-child(2){animation-name:eatTwo}.supply-pellet:nth-child(3){animation-name:eatThree}.supply-pellet:nth-child(4){animation-name:eatFour}.supply-pellet:nth-child(5){animation-name:eatFive}
   @keyframes eatOne{0%,19%{opacity:1;transform:scale(1)}23%,95%{opacity:0;transform:scale(.15)}100%{opacity:1;transform:scale(1)}}
@@ -694,9 +694,12 @@
     <span class="supply-pellet" style="--x:84%">0.01</span>
     <div class="mascot-walk" aria-hidden="true">
       <svg class="walker-body" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r="46" fill="#121212" stroke="#d4ff4f" stroke-width="2" stroke-dasharray="3 5"/>
-        <circle cx="38" cy="35" r="7" fill="#f2efe6"/><circle cx="38" cy="34" r="2" fill="#121212"/>
-        <g class="walker-mouth"><path d="M55 27 L82 38 L58 48 L82 58 L55 70 Z" fill="#f2efe6"/></g>
+        <g transform="rotate(-90 50 50)">
+          <circle cx="50" cy="50" r="47" fill="#121212" stroke="#d4ff4f" stroke-width="2"/>
+          <circle cx="34" cy="42" r="7" fill="#f2efe6"/>
+          <circle cx="66" cy="42" r="7" fill="#f2efe6"/>
+          <g class="walker-mouth"><path d="M24 58 L32 74 L40 58 L48 74 L56 58 L64 74 L72 58 L76 60 L76 54 L24 54 Z" fill="#f2efe6"/></g>
+        </g>
       </svg>
       <span class="walker-leg left"></span><span class="walker-leg right"></span>
     </div>
