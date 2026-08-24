@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>$CHOMP — The Supply Eater</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>$CHOMP — The Supply Eater</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -456,9 +457,11 @@
   .burn-card{max-width:1060px;margin:28px auto 0;border:1px solid var(--line);background:var(--card);}
   .burn-head,.burn-row{display:grid;grid-template-columns:170px 1fr 190px;gap:16px;align-items:center;padding:14px 20px;}
   .burn-head{background:var(--bg2);border-bottom:1px solid var(--line);font:700 .65rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
-  .burn-row{border-bottom:1px solid var(--line);font:.78rem var(--font-mono);}
+  .burn-row{border-bottom:1px solid var(--line);font:.78rem var(--font-mono);min-height:58px;box-sizing:border-box;}
   .burn-row:last-child{border-bottom:0}.burn-amount{color:var(--ember);font-weight:800}.burn-tx{color:var(--lime);text-align:right;text-decoration:none}.burn-tx:hover{text-decoration:underline}.burn-empty{padding:28px 20px;color:var(--muted);font:.78rem var(--font-mono);}
-  @media(max-width:760px){.live-strip{grid-template-columns:repeat(2,1fr)}.burn-head{display:none}.burn-row{grid-template-columns:1fr auto}.burn-row .burn-tx{grid-column:1/-1;text-align:left}.live-data{padding-inline:4vw}}
+  #publicBurnLog{max-height:290px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--lime) var(--bg2);}
+  #publicBurnLog::-webkit-scrollbar{width:8px}#publicBurnLog::-webkit-scrollbar-track{background:var(--bg2)}#publicBurnLog::-webkit-scrollbar-thumb{background:var(--lime);border:2px solid var(--bg2);border-radius:8px}
+  @media(max-width:760px){.live-strip{grid-template-columns:repeat(2,1fr)}.burn-head{display:none}.burn-row{grid-template-columns:1fr auto;min-height:82px}.burn-row .burn-tx{grid-column:1/-1;text-align:left}.live-data{padding-inline:4vw}#publicBurnLog{max-height:410px}}
 </style>
 </head>
 <body>
