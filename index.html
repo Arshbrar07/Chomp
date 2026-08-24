@@ -444,6 +444,21 @@
   .deposit-layout{display:flex;gap:24px;align-items:center;margin-top:18px;}
   @media(max-width:800px){.app-shell{display:block}.app-side{position:static;height:auto;padding:16px 18px;border-right:0;border-bottom:1px solid var(--line)}.app-brand{margin:0 0 14px}.app-nav{display:flex;overflow:auto}.app-nav button{white-space:nowrap}.app-env{display:none}.app-main{padding-top:22px}.app-card,.app-card.wide{grid-column:1/-1}.deposit-layout{align-items:flex-start;flex-direction:column}.app-top{align-items:flex-start}.quote-grid{grid-template-columns:1fr}.token-row,.history-row{grid-template-columns:1fr auto}.token-row>:last-child,.history-row>:last-child{grid-column:1/-1;text-align:left}.nav-right .icon-btn{display:none}.nav-buy{padding:10px 12px;font-size:.7rem}}
   @media(max-width:480px){.nav-right .nav-buy:first-of-type{display:none}.app-main{padding-inline:15px}.app-card{padding:17px}}
+
+  /* ---------- live on-chain stats ---------- */
+  .live-data{background:var(--bg);border-top:1px solid var(--line);}
+  .live-strip{max-width:1060px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);background:var(--line);gap:1px;}
+  .live-stat{background:var(--card);padding:26px 22px;min-width:0;}
+  .live-stat-value{font:800 clamp(1.25rem,2.7vw,1.8rem) var(--font-mono);color:var(--bone);overflow-wrap:anywhere;}
+  .live-stat-label{font:700 .66rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px;}
+  .live-status{max-width:1060px;margin:14px auto 0;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font:.7rem var(--font-mono);}
+  .live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 9px var(--lime);margin-right:7px;}
+  .burn-card{max-width:1060px;margin:28px auto 0;border:1px solid var(--line);background:var(--card);}
+  .burn-head,.burn-row{display:grid;grid-template-columns:170px 1fr 190px;gap:16px;align-items:center;padding:14px 20px;}
+  .burn-head{background:var(--bg2);border-bottom:1px solid var(--line);font:700 .65rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .burn-row{border-bottom:1px solid var(--line);font:.78rem var(--font-mono);}
+  .burn-row:last-child{border-bottom:0}.burn-amount{color:var(--ember);font-weight:800}.burn-tx{color:var(--lime);text-align:right;text-decoration:none}.burn-tx:hover{text-decoration:underline}.burn-empty{padding:28px 20px;color:var(--muted);font:.78rem var(--font-mono);}
+  @media(max-width:760px){.live-strip{grid-template-columns:repeat(2,1fr)}.burn-head{display:none}.burn-row{grid-template-columns:1fr auto}.burn-row .burn-tx{grid-column:1/-1;text-align:left}.live-data{padding-inline:4vw}}
 </style>
 </head>
 <body>
@@ -521,7 +536,7 @@
 
     <div class="ca-row">
       <span>CA:</span>
-      <span class="ca-val" id="ca-display">Chomp1111111111111111111111111111111111</span>
+      <span class="ca-val" id="ca-display">E714f3oiK3sA8WGBBpmgx7Vkptz7Xh7H9YNWjpkLpump</span>
       <button id="copy-ca" class="chomp-trigger" onclick="copyCA(event)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
         <span id="copy-label">Copy</span>
@@ -632,6 +647,25 @@
   </div>
 </section>
 
+<section class="live-data" id="live-data">
+  <div class="section-head">
+    <div class="kicker">verified on-chain</div>
+    <h2>Live supply. Every bite recorded.</h2>
+    <p>Current token data and confirmed burn activity, refreshed from the public Solana record.</p>
+  </div>
+  <div class="live-strip" aria-label="Live token statistics">
+    <div class="live-stat"><div class="live-stat-value" id="liveSupply">—</div><div class="live-stat-label">Supply remaining</div></div>
+    <div class="live-stat"><div class="live-stat-value" id="liveHolders">—</div><div class="live-stat-label">Holders</div></div>
+    <div class="live-stat"><div class="live-stat-value" id="liveCycles">—</div><div class="live-stat-label">Cycles executed</div></div>
+    <div class="live-stat"><div class="live-stat-value" id="liveBurned">—</div><div class="live-stat-label">Total burned</div></div>
+  </div>
+  <div class="live-status"><span><span class="live-dot"></span><span id="liveState">Loading verified data…</span></span><span>CA: E714f3oiK3sA8WGBBpmgx7Vkptz7Xh7H9YNWjpkLpump</span></div>
+  <div class="burn-card">
+    <div class="burn-head"><span>Confirmed</span><span>Amount burned</span><span style="text-align:right">Transaction</span></div>
+    <div id="publicBurnLog"><div class="burn-empty">Loading confirmed burns…</div></div>
+  </div>
+</section>
+
 <section class="band">
   <svg class="band-orobo" viewBox="0 0 200 200">
     <g>
@@ -675,7 +709,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2c3 4 6 7 6 11a6 6 0 01-12 0c0-4 3-7 6-11z"/></svg>
     </a>
   </div>
-  <p class="foot-note">$CHOMP is a deposit-and-burn mechanism concept. Demo site — no real transactions occur here. The contract address shown is a placeholder; replace it with the real mint address before launch. Nothing on this page is financial advice; tokens and burn mechanics carry risk, so do your own research before depositing anywhere.</p>
+  <p class="foot-note">This website displays public on-chain activity for mint E714f3oiK3sA8WGBBpmgx7Vkptz7Xh7H9YNWjpkLpump. The website itself does not sign or submit transactions. Nothing on this page is financial advice; tokens and burn mechanics carry risk, so do your own research before depositing anywhere.</p>
 </footer>
 
 <div class="app-overlay" id="feedOverlay" role="dialog" aria-modal="true" aria-labelledby="appTitle">
@@ -950,6 +984,43 @@
     setTimeout(async()=>{if(!loopCreated)return;await loadExistingLoop();toast('Mock activation and first burn confirmed');},6500);
   }
   setInterval(()=>{if(!quoteEndsAt)return;const left=Math.max(0,quoteEndsAt-Date.now()),m=Math.floor(left/60000),s=Math.floor(left%60000/1000);document.getElementById('quoteTimer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');},1000);
+
+  // ----- verified public token metrics -----
+  const liveFormat = value => Number(value).toLocaleString(undefined,{maximumFractionDigits:6});
+  async function loadPublicMetrics(){
+    const state=document.getElementById('liveState');
+    try{
+      const [supplyResponse,holdersResponse,cyclesResponse]=await Promise.all([
+        fetch('/api/supply'),fetch('/api/holders'),fetch('/api/cycles')
+      ]);
+      if(!supplyResponse.ok||!holdersResponse.ok||!cyclesResponse.ok)throw new Error('Live source unavailable');
+      const [supply,holders,cycles]=await Promise.all([supplyResponse.json(),holdersResponse.json(),cyclesResponse.json()]);
+      if(supply.status!=='ok'||holders.status!=='ok'||cycles.status!=='ok')throw new Error('Live source returned an error');
+      document.getElementById('liveSupply').textContent=liveFormat(supply.supply);
+      document.getElementById('liveHolders').textContent=liveFormat(holders.holders);
+      document.getElementById('liveCycles').textContent=liveFormat(cycles.cycles);
+      document.getElementById('liveBurned').textContent=liveFormat(cycles.totalBurned);
+      state.textContent='Live · refreshed '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      renderPublicBurns(cycles.burns||[]);
+    }catch(error){
+      state.textContent='Live data temporarily unavailable';
+      document.getElementById('publicBurnLog').textContent='';
+      const empty=document.createElement('div');empty.className='burn-empty';empty.textContent='Burn history could not be loaded. Please try again shortly.';document.getElementById('publicBurnLog').appendChild(empty);
+    }
+  }
+  function renderPublicBurns(burns){
+    const log=document.getElementById('publicBurnLog');log.textContent='';
+    if(!burns.length){const empty=document.createElement('div');empty.className='burn-empty';empty.textContent='No confirmed burns found yet.';log.appendChild(empty);return;}
+    burns.slice(0,20).forEach(burn=>{
+      const row=document.createElement('div');row.className='burn-row';
+      const date=document.createElement('span');date.textContent=new Date(Number(burn.timestamp)*1000).toLocaleString();
+      const amount=document.createElement('span');amount.className='burn-amount';amount.textContent='−'+liveFormat(burn.amount)+' CHOMP';
+      const link=document.createElement('a');link.className='burn-tx';link.href='https://solscan.io/tx/'+encodeURIComponent(String(burn.signature));link.target='_blank';link.rel='noopener';link.textContent=String(burn.signature).slice(0,8)+'…'+String(burn.signature).slice(-6);
+      row.append(date,amount,link);log.appendChild(row);
+    });
+  }
+  loadPublicMetrics();
+  setInterval(loadPublicMetrics,60000);
 </script>
 
 </body>
