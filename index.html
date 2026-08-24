@@ -260,9 +260,25 @@
     border-top:1px solid var(--line);
   }
   .band h2{margin-bottom:16px;}
-  .band-orobo{width:110px;height:110px;margin:0 auto 26px;animation:spin 14s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  @media (prefers-reduced-motion: reduce){.band-orobo,.mascot,.mascot .mouth,.mascot-glow{animation:none;}}
+  .feeding-lane{position:relative;width:min(620px,92vw);height:150px;margin:0 auto 20px;overflow:hidden;border-bottom:1px dashed rgba(212,255,79,.3);}
+  .supply-pellet{position:absolute;bottom:43px;left:var(--x);font:800 .78rem var(--font-mono);color:var(--lime);text-shadow:0 0 12px rgba(212,255,79,.45);animation:10s linear infinite;}
+  .supply-pellet::before{content:'◆';display:block;font-size:.52rem;margin:0 auto 4px;}
+  .mascot-walk{position:absolute;left:-92px;bottom:12px;width:86px;height:94px;animation:walkAcross 10s linear infinite;z-index:2;}
+  .walker-body{width:76px;height:76px;animation:walkerBob .38s ease-in-out infinite alternate;filter:drop-shadow(0 0 12px rgba(212,255,79,.2));}
+  .walker-mouth{transform-box:fill-box;transform-origin:center;animation:walkerChomp .5s ease-in-out infinite;}
+  .walker-leg{position:absolute;bottom:0;width:20px;height:5px;background:var(--bone);border-radius:5px;transform-origin:top center;}
+  .walker-leg.left{left:18px;animation:legStep .38s ease-in-out infinite alternate}.walker-leg.right{right:18px;animation:legStep .38s ease-in-out infinite alternate-reverse}
+  @keyframes walkAcross{0%{transform:translateX(0)}90%,100%{transform:translateX(calc(min(620px,92vw) + 100px))}}
+  @keyframes walkerBob{to{transform:translateY(-5px)}}
+  @keyframes walkerChomp{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.42)}}
+  @keyframes legStep{from{transform:rotate(24deg)}to{transform:rotate(-24deg)}}
+  .supply-pellet:nth-child(1){animation-name:eatOne}.supply-pellet:nth-child(2){animation-name:eatTwo}.supply-pellet:nth-child(3){animation-name:eatThree}.supply-pellet:nth-child(4){animation-name:eatFour}.supply-pellet:nth-child(5){animation-name:eatFive}
+  @keyframes eatOne{0%,19%{opacity:1;transform:scale(1)}23%,95%{opacity:0;transform:scale(.15)}100%{opacity:1;transform:scale(1)}}
+  @keyframes eatTwo{0%,35%{opacity:1;transform:scale(1)}39%,95%{opacity:0;transform:scale(.15)}100%{opacity:1;transform:scale(1)}}
+  @keyframes eatThree{0%,51%{opacity:1;transform:scale(1)}55%,95%{opacity:0;transform:scale(.15)}100%{opacity:1;transform:scale(1)}}
+  @keyframes eatFour{0%,67%{opacity:1;transform:scale(1)}71%,95%{opacity:0;transform:scale(.15)}100%{opacity:1;transform:scale(1)}}
+  @keyframes eatFive{0%,83%{opacity:1;transform:scale(1)}87%,95%{opacity:0;transform:scale(.15)}100%{opacity:1;transform:scale(1)}}
+  @media (prefers-reduced-motion: reduce){.mascot,.mascot .mouth,.mascot-glow,.mascot-walk,.walker-body,.walker-mouth,.walker-leg,.supply-pellet{animation:none}.mascot-walk{left:calc(50% - 43px)}.supply-pellet{opacity:.7}}
 
   footer{
     background:var(--bg2);border-top:1px solid var(--line);
@@ -670,14 +686,21 @@
 </section>
 
 <section class="band">
-  <svg class="band-orobo" viewBox="0 0 200 200">
-    <circle cx="100" cy="100" r="84" fill="#121212" stroke="#d4ff4f" stroke-width="3" stroke-dasharray="4 10"/>
-    <circle cx="70" cy="78" r="12" fill="#f2efe6"/>
-    <circle cx="130" cy="78" r="12" fill="#f2efe6"/>
-    <circle cx="73" cy="75" r="4" fill="#121212"/>
-    <circle cx="133" cy="75" r="4" fill="#121212"/>
-    <path d="M50 112 L62 148 L74 112 L86 148 L98 112 L110 148 L122 112 L134 148 L146 112 L152 116 L152 104 L50 104 Z" fill="#f2efe6"/>
-  </svg>
+  <div class="feeding-lane" role="img" aria-label="CHOMP walking across the supply and eating each amount">
+    <span class="supply-pellet" style="--x:12%">1B</span>
+    <span class="supply-pellet" style="--x:30%">1M</span>
+    <span class="supply-pellet" style="--x:48%">1</span>
+    <span class="supply-pellet" style="--x:66%">0.1</span>
+    <span class="supply-pellet" style="--x:84%">0.01</span>
+    <div class="mascot-walk" aria-hidden="true">
+      <svg class="walker-body" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="46" fill="#121212" stroke="#d4ff4f" stroke-width="2" stroke-dasharray="3 5"/>
+        <circle cx="38" cy="35" r="7" fill="#f2efe6"/><circle cx="38" cy="34" r="2" fill="#121212"/>
+        <g class="walker-mouth"><path d="M55 27 L82 38 L58 48 L82 58 L55 70 Z" fill="#f2efe6"/></g>
+      </svg>
+      <span class="walker-leg left"></span><span class="walker-leg right"></span>
+    </div>
+  </div>
   <h2>1B → 1M → 1 → 0.1 → 0.01 → …</h2>
   <p class="sub" style="margin:0 auto;">You feed. It eats. Supply disappears. The last token isn't safe.</p>
   <div class="action-row" style="margin-top:32px;">
