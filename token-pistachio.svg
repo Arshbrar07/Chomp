@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">Pistachio mascot</title>
+  <circle cx="128" cy="128" r="122" fill="#fff5de" stroke="#22331b" stroke-width="10"/>
+  <path d="M62 195c-8-62 17-117 66-148 49 31 74 86 66 148-34 21-98 21-132 0Z" fill="#f2cf8b" stroke="#22331b" stroke-width="9"/>
+  <path d="M84 183c-3-45 13-85 44-111 31 26 47 66 44 111-25 17-63 17-88 0Z" fill="#91c84a" stroke="#22331b" stroke-width="8"/>
+  <circle cx="111" cy="128" r="8" fill="#22331b"/><circle cx="147" cy="128" r="8" fill="#22331b"/>
+  <path d="M108 153c12 11 28 11 40 0" fill="none" stroke="#22331b" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="91" cy="149" r="10" fill="#ff9a7b" opacity=".55"/><circle cx="165" cy="149" r="10" fill="#ff9a7b" opacity=".55"/>
+</svg>
