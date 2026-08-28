@@ -1,6 +1,6 @@
 const TOKEN_MINT = 'BXRtLzupLSdS4KNLLEwondWiprU7KS7wVqLNAVqppump';
 const BURN_SIGNER = '9XpUpv1yo2n1DWoQoKWr3Wx3RpihbgBku9vvZ39dm4at';
-const CACHE_VERSION = 'chomp-mint-v2';
+const CACHE_VERSION = 'chomp-mint-v3';
 
 const ENDPOINT_TTLS = new Map([
   ['/api/supply', 300],
@@ -43,16 +43,27 @@ async function getSupply(apiKey) {
 }
 
 async function getHolders(apiKey) {
-  const result = await heliusRpc(apiKey, 'getTokenAccounts', {
-    mint: TOKEN_MINT,
-    page: 1,
-    limit: 1,
-    options: { showZeroBalance: false }
-  });
+  const owners = new Set();
+  const limit = 1000;
+
+  for (let page = 1; page <= 100; page += 1) {
+    const result = await heliusRpc(apiKey, 'getTokenAccounts', {
+      mint: TOKEN_MINT,
+      page,
+      limit,
+      options: { showZeroBalance: false }
+    });
+    const accounts = Array.isArray(result.token_accounts) ? result.token_accounts : [];
+    for (const account of accounts) {
+      if (account.owner && Number(account.amount || 0) > 0) owners.add(account.owner);
+    }
+    if (accounts.length < limit) break;
+  }
+
   return {
     status: 'ok',
     mint: TOKEN_MINT,
-    holders: Number(result.total || 0)
+    holders: owners.size
   };
 }
 
