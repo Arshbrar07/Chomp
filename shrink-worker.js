@@ -1,6 +1,6 @@
 const TOKEN_MINT = 'BXRtLzupLSdS4KNLLEwondWiprU7KS7wVqLNAVqppump';
-const BURN_SIGNER = '9XpUpv1yo2n1DWoQoKWr3Wx3RpihbgBku9vvZ39dm4at';
-const CACHE_VERSION = 'chomp-mint-v3';
+const BURN_SIGNER = 'CiZRcErFSYUbg8nnNEz4ktRQn41D63xnLB1xYjE8i8Z1';
+const CACHE_VERSION = 'chomp-mint-v7';
 
 const ENDPOINT_TTLS = new Map([
   ['/api/supply', 300],
@@ -67,61 +67,49 @@ async function getHolders(apiKey) {
   };
 }
 
-function burnAmountFromTransaction(transaction) {
-  const looksLikeBurn = String(transaction.type || '').toUpperCase().includes('BURN') ||
-    String(transaction.description || '').toLowerCase().includes('burn');
-
-  const transferBurns = (transaction.tokenTransfers || []).filter((transfer) =>
-    transfer.mint === TOKEN_MINT &&
-    transfer.fromUserAccount === BURN_SIGNER &&
-    !transfer.toUserAccount
-  );
-  if (transferBurns.length) {
-    return transferBurns.reduce((sum, transfer) => sum + Math.abs(Number(transfer.tokenAmount || 0)), 0);
-  }
-
-  if (!looksLikeBurn) return 0;
-  let amount = 0;
-  for (const account of transaction.accountData || []) {
-    for (const change of account.tokenBalanceChanges || []) {
-      if (change.mint !== TOKEN_MINT || change.userAccount !== BURN_SIGNER) continue;
-      const raw = Number(change.rawTokenAmount?.tokenAmount || 0);
-      const decimals = Number(change.rawTokenAmount?.decimals || 0);
-      if (raw < 0) amount += Math.abs(raw) / (10 ** decimals);
-    }
-  }
-  return amount;
-}
-
 async function getCycles(apiKey) {
+  const signatures = await heliusRpc(apiKey, 'getSignaturesForAddress', [
+    BURN_SIGNER,
+    { limit: 40 }
+  ]);
   const burns = [];
-  let before = '';
 
-  for (let page = 0; page < 5; page += 1) {
-    const query = new URLSearchParams({ 'api-key': apiKey, limit: '100' });
-    if (before) query.set('before', before);
-    const response = await fetch(
-      `https://api.helius.xyz/v0/addresses/${BURN_SIGNER}/transactions?${query}`,
-      { headers: { Accept: 'application/json' } }
-    );
-    if (!response.ok) throw new Error(`Helius transaction history failed (${response.status})`);
-    const transactions = await response.json();
-    if (!Array.isArray(transactions) || transactions.length === 0) break;
+  for (let offset = 0; offset < signatures.length; offset += 10) {
+    const batch = signatures.slice(offset, offset + 10);
+    const transactions = [];
+    for (const entry of batch) {
+      transactions.push(await heliusRpc(apiKey, 'getTransaction', [
+        entry.signature,
+        { encoding: 'jsonParsed', maxSupportedTransactionVersion: 0 }
+      ]));
+    }
 
-    for (const transaction of transactions) {
-      const amount = burnAmountFromTransaction(transaction);
+    transactions.forEach((transaction, index) => {
+      if (!transaction) return;
+      const topLevel = transaction.transaction?.message?.instructions || [];
+      const inner = (transaction.meta?.innerInstructions || []).flatMap((group) => group.instructions || []);
+      let amount = 0;
+
+      for (const instruction of [...topLevel, ...inner]) {
+        const type = instruction.parsed?.type;
+        const info = instruction.parsed?.info;
+        if ((type !== 'burn' && type !== 'burnChecked') || info?.mint !== TOKEN_MINT) continue;
+        if (info.authority && info.authority !== BURN_SIGNER) continue;
+        if (info.tokenAmount?.uiAmountString != null) {
+          amount += Number(info.tokenAmount.uiAmountString);
+        } else if (info.amount != null) {
+          amount += Number(info.amount);
+        }
+      }
+
       if (amount > 0) {
         burns.push({
-          signature: transaction.signature,
+          signature: batch[index].signature,
           amount,
-          timestamp: transaction.timestamp || null
+          timestamp: transaction.blockTime || batch[index].blockTime || null
         });
       }
-    }
-
-    if (transactions.length < 100) break;
-    before = transactions[transactions.length - 1]?.signature || '';
-    if (!before) break;
+    });
   }
 
   burns.sort((a, b) => Number(b.timestamp || 0) - Number(a.timestamp || 0));

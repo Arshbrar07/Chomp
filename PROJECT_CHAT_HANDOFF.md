@@ -31,7 +31,7 @@ The old Shrink bot URL must not be restored to Feed Chomp buttons.
 ## Token and on-chain data
 
 - Token mint / CA: `BXRtLzupLSdS4KNLLEwondWiprU7KS7wVqLNAVqppump`
-- Burn signer: `9XpUpv1yo2n1DWoQoKWr3Wx3RpihbgBku9vvZ39dm4at`
+- Burn signer: `CiZRcErFSYUbg8nnNEz4ktRQn41D63xnLB1xYjE8i8Z1`
 - Public same-origin endpoints used by the page:
   - `/api/supply`
   - `/api/holders`
