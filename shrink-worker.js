@@ -1,6 +1,6 @@
 const TOKEN_MINT = '9AXxGepWb5oHUTM7kzKLHhah561XFh96SpR7vdtspump';
-const BURN_SIGNER = 'CiZRcErFSYUbg8nnNEz4ktRQn41D63xnLB1xYjE8i8Z1';
-const CACHE_VERSION = 'chomp-mint-v8';
+const BURN_SIGNER = '9XpUpv1yo2n1DWoQoKWr3Wx3RpihbgBku9vvZ39dm4at';
+const CACHE_VERSION = 'chomp-mint-v9';
 
 const ENDPOINT_TTLS = new Map([
   ['/api/supply', 300],
@@ -86,15 +86,23 @@ async function getCycles(apiKey) {
 
     transactions.forEach((transaction, index) => {
       if (!transaction) return;
+      const accountKeys = transaction.transaction?.message?.accountKeys || [];
+      const signedByBurnSigner = accountKeys.some((account) => {
+        if (typeof account === 'string') return false;
+        return account.pubkey === BURN_SIGNER && account.signer === true;
+      });
+      if (!signedByBurnSigner) return;
+
       const topLevel = transaction.transaction?.message?.instructions || [];
       const inner = (transaction.meta?.innerInstructions || []).flatMap((group) => group.instructions || []);
       let amount = 0;
+      const authorities = new Set();
 
       for (const instruction of [...topLevel, ...inner]) {
         const type = instruction.parsed?.type;
         const info = instruction.parsed?.info;
         if ((type !== 'burn' && type !== 'burnChecked') || info?.mint !== TOKEN_MINT) continue;
-        if (info.authority && info.authority !== BURN_SIGNER) continue;
+        if (info.authority) authorities.add(info.authority);
         if (info.tokenAmount?.uiAmountString != null) {
           amount += Number(info.tokenAmount.uiAmountString);
         } else if (info.amount != null) {
@@ -106,6 +114,7 @@ async function getCycles(apiKey) {
         burns.push({
           signature: batch[index].signature,
           amount,
+          authorities: [...authorities],
           timestamp: transaction.blockTime || batch[index].blockTime || null
         });
       }
