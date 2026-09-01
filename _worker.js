@@ -28,7 +28,7 @@ export default {
 
     const ttl = API_TTLS.get(url.pathname);
     const cache = caches.default;
-    const cacheKey = new Request(`https://chomp-api-cache.internal/chomp-mint-v7${url.pathname}`);
+    const cacheKey = new Request(`https://chomp-api-cache.internal/chomp-mint-v8${url.pathname}`);
     const cached = await cache.match(cacheKey);
     if (cached) return cached;
 

@@ -1,6 +1,6 @@
-const TOKEN_MINT = 'BXRtLzupLSdS4KNLLEwondWiprU7KS7wVqLNAVqppump';
+const TOKEN_MINT = '9AXxGepWb5oHUTM7kzKLHhah561XFh96SpR7vdtspump';
 const BURN_SIGNER = 'CiZRcErFSYUbg8nnNEz4ktRQn41D63xnLB1xYjE8i8Z1';
-const CACHE_VERSION = 'chomp-mint-v7';
+const CACHE_VERSION = 'chomp-mint-v8';
 
 const ENDPOINT_TTLS = new Map([
   ['/api/supply', 300],
